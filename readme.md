@@ -8,7 +8,7 @@
 	
 2. Lakukan clone project
 
-**CARA PENGGUNAAN :**
+**CARA PENGGUNAAN RSA :**
 
 1. Jalankan file yang digunakan sebagai server menggunakan command :
 	
