@@ -15,10 +15,31 @@ def generate_keys():
     with open('ecc_key/privkey.pem', 'w') as f:
         f.write(privKey)
 
-generate_keys()
+def load_keys():
+    with open('ecc_key/pubkey.pem', 'r') as f:
+        pubKey = f.read()
 
-# plaintext = b"Brigitha"
-# encrypted = encrypt(pk_hex, plaintext)
+    with open('ecc_key/privkey.pem', 'r') as f:
+        privKey = f.read()
 
-# print(encrypted)
+    return pubKey, privKey
 
+def encryptText(msg, key):
+    return encrypt(key, msg)
+
+pubKey, privKey = load_keys()
+
+HOST = input('Enter host: ')
+PORT = int(input('Enter port: '))
+BUFFER_SIZE = 1024
+ADDRESS = (HOST, PORT)
+
+CLIENT = socket(AF_INET, SOCK_STREAM)
+CLIENT.connect(ADDRESS)
+
+msg = b"Brigitha"
+ciphertext = encryptText(msg, pubKey)
+
+CLIENT.send(bytes(ciphertext))
+
+print(ciphertext)
