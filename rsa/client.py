@@ -9,7 +9,7 @@ import random
 import time
 
 def generate_keys():
-    (pubKey, privKey) = rsa.newkeys(1024)
+    (pubKey, privKey) = rsa.newkeys(2048)
     with open('rsa_key/pubkey.pem', 'wb') as f:
         f.write(pubKey.save_pkcs1('PEM'))
 
@@ -44,7 +44,7 @@ pubKey, privKey = load_keys()
 
 HOST = input('Enter host: ')
 PORT = int(input('Enter port: '))
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 2048
 ADDRESS = (HOST, PORT)
 
 CLIENT = socket(AF_INET, SOCK_STREAM)

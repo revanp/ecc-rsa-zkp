@@ -1,5 +1,6 @@
+from socket import *
+from threading import Thread
 import rsa
-import random
 
 def generate_keys():
     (pubKey, privKey) = rsa.newkeys(2048)
@@ -8,6 +9,9 @@ def generate_keys():
 
     with open('rsa_key/privkey.pem', 'wb') as f:
         f.write(privKey.save_pkcs1('PEM'))
+
+def send(event = None):
+    CLIENT.send(bytes(msg, "utf8"))
 
 def load_keys():
     with open('rsa_key/pubkey.pem', 'rb') as f:
@@ -21,12 +25,6 @@ def load_keys():
 def encrypt(msg, key):
     return rsa.encrypt(msg.encode('ascii'), key)
 
-def decrypt(ciphertext, key):
-    try:
-        return rsa.decrypt(ciphertext, key).decode('ascii')
-    except:
-        return False
-
 def sign_sha1(msg, key):
     return rsa.sign(msg.encode('ascii'), key, 'SHA-1')
 
@@ -36,29 +34,21 @@ def verify_sha1(msg, signature, key):
     except:
         return False
 
-generate_keys()
 pubKey, privKey = load_keys()
 
-# message = input('Enter a message:')
-message = str(random.randint(0, 1000))
+HOST = input('Enter host: ')
+PORT = int(input('Enter port: '))
+BUFFER_SIZE = 2048
+ADDRESS = (HOST, PORT)
 
-# print(random.randint(10, 100))
+# msg = 'APA HAYOOO'
+msg = input('Enter a message: ')
+ciphertext = encrypt(msg, pubKey)
+print(ciphertext)
 
-ciphertext = encrypt(message, pubKey)
+CLIENT = socket(AF_INET, SOCK_STREAM)    # client socket object
+CLIENT.connect(ADDRESS)	# to connect to the server socket address
 
-signature = sign_sha1(message, privKey)
-
-plaintext = decrypt(ciphertext, privKey)
-
-print(f'Cipher text: {ciphertext}')
-print(f'Signature: {signature}')
-
-if plaintext:
-    print(f'Plain text: {plaintext}')
-else:
-    print('Could not decrypt the message.')
-
-if verify_sha1(plaintext, signature, pubKey):
-    print('Signature verified!')
-else:
-    print('Could not verify the message signature.')
+CLIENT.send(bytes(ciphertext))
+# print(f'Cipher text: {ciphertext}')
+# m = CLIENT.recv(BUFFER_SIZE).decode('utf8')

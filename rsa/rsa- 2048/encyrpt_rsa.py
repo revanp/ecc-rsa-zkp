@@ -37,6 +37,7 @@ def verify_sha1(msg, signature, key):
         return False
 
 generate_keys()
+quit()
 pubKey, privKey = load_keys()
 
 # message = input('Enter a message:')
