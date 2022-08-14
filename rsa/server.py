@@ -1,6 +1,7 @@
 from socket import *
 from threading import Thread
 import rsa
+import time
 
 client_sock = []
 client_addresses = {}
@@ -21,15 +22,26 @@ def decrypt(ciphertext, key):
     except:
         return False
 
+def verify_sha1(msg, signature, key):
+    try:
+        return rsa.verify(msg.encode('ascii'), signature, key) == 'SHA-1'
+    except:
+        return False
+
 def accept_incoming(): 
-    client, client_addresses = SERVER.accept()
+    client, client_address = SERVER.accept()
     client_sock.append(client)
-    print("%s:%s has connected." % client_addresses)
+    print("%s:%s has connected." % client_address)
+    client_addresses[client] = client_address
 
 def handle_client(client_sock, client_addresses):
-    msg0 = client_sock[0].recv(BUFFER_SIZE)
-    msg1 = decrypt(msg0, privKey)
-    print(" Client : %s" % msg1)
+    signature = client_sock[0].recv(BUFFER_SIZE)
+    message = input('Input text:')
+    
+    if(verify_sha1(message, signature, pubKey)):
+        print('Verified!')
+    else:
+        print('Not match!')
 
 pubKey, privKey = load_keys()
 
@@ -47,5 +59,5 @@ print("Waiting for connection...")
 accept_incoming()
 
 Thread(target = handle_client, args = (client_sock, client_addresses)).start()
-# print('From user: ')
+
 SERVER.close()

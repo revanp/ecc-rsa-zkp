@@ -1,6 +1,12 @@
 from socket import *
 from threading import Thread
+from noknow.core import ZK, ZKSignature, ZKParameters, ZKData, ZKProof
+from getpass import getpass
+from queue import Queue
+
 import rsa
+import random
+import time
 
 def generate_keys():
     (pubKey, privKey) = rsa.newkeys(1024)
@@ -41,14 +47,16 @@ PORT = int(input('Enter port: '))
 BUFFER_SIZE = 1024
 ADDRESS = (HOST, PORT)
 
-# msg = 'APA HAYOOO'
-msg = input('Enter a message: ')
+CLIENT = socket(AF_INET, SOCK_STREAM)
+CLIENT.connect(ADDRESS)
+
+msg = str(random.randint(0, 1000))
 ciphertext = encrypt(msg, pubKey)
-print(ciphertext)
+signature = sign_sha1(msg, privKey)
 
-CLIENT = socket(AF_INET, SOCK_STREAM)    # client socket object
-CLIENT.connect(ADDRESS)	# to connect to the server socket address
+print(msg)
 
-CLIENT.send(bytes(ciphertext))
+CLIENT.send(bytes(signature))
+
 # print(f'Cipher text: {ciphertext}')
 # m = CLIENT.recv(BUFFER_SIZE).decode('utf8')
