@@ -3,10 +3,12 @@ from threading import Thread
 from noknow.core import ZK, ZKSignature, ZKParameters, ZKData, ZKProof
 from getpass import getpass
 from queue import Queue
+from datetime import datetime
 
-import rsa
+import rsa 
 import random
 import time
+import json
 
 def generate_keys():
     (pubKey, privKey) = rsa.newkeys(2048)
@@ -15,9 +17,6 @@ def generate_keys():
 
     with open('rsa_key/privkey.pem', 'wb') as f:
         f.write(privKey.save_pkcs1('PEM'))
-
-def send(event = None):
-    CLIENT.send(bytes(msg, "utf8"))
 
 def load_keys():
     with open('rsa_key/pubkey.pem', 'rb') as f:
@@ -31,32 +30,30 @@ def load_keys():
 def encrypt(msg, key):
     return rsa.encrypt(msg.encode('ascii'), key)
 
-def sign_sha1(msg, key):
-    return rsa.sign(msg.encode('ascii'), key, 'SHA-1')
-
-def verify_sha1(msg, signature, key):
-    try:
-        return rsa.verify(msg.encode('ascii'), signature, key) == 'SHA-1'
-    except:
-        return False
+def pencatatan(i, waktu):
+    f = open('rsa_csv/publish_RSA.csv', 'a')
+    f.write("Pesan ke-" + i + ";" + msg + ";" + waktu + "\n")
 
 pubKey, privKey = load_keys()
 
-HOST = input('Enter host: ')
-PORT = int(input('Enter port: '))
-BUFFER_SIZE = 2048
+HOST = '192.168.100.174'
+PORT = 42000
 ADDRESS = (HOST, PORT)
 
-CLIENT = socket(AF_INET, SOCK_STREAM)
-CLIENT.connect(ADDRESS)
+message = {}
+for i in range(10): 
+    CLIENT = socket(AF_INET, SOCK_STREAM)
+    CLIENT.connect(ADDRESS)
 
-msg = str(random.randint(0, 1000))
-ciphertext = encrypt(msg, pubKey)
-signature = sign_sha1(msg, privKey)
+    msg = str(random.randint(0, 1000))
+    ciphertext = encrypt(msg, pubKey)
+    now = str(datetime.now().timestamp())
 
-print(msg)
+    pencatatan(str(i), now)
+    message['cipher'] = ciphertext.decode('ISO-8859-1')
+    message['datetime'] = now
 
-CLIENT.send(bytes(signature))
+    jsonToString = json.dumps(message, indent=2)
 
-# print(f'Cipher text: {ciphertext}')
-# m = CLIENT.recv(BUFFER_SIZE).decode('utf8')
+    print(jsonToString + "\n")
+    CLIENT.send(bytes(jsonToString, encoding = 'utf-8'))

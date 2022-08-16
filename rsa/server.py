@@ -1,11 +1,10 @@
 from socket import *
 from threading import Thread
+from datetime import datetime
+
 import rsa
 import time
-
-client_sock = []
-client_addresses = {}
-public_key = []
+import json
 
 def load_keys():
     with open('rsa_key/pubkey.pem', 'rb') as f:
@@ -22,42 +21,49 @@ def decrypt(ciphertext, key):
     except:
         return False
 
-def verify_sha1(msg, signature, key):
-    try:
-        return rsa.verify(msg.encode('ascii'), signature, key) == 'SHA-1'
-    except:
-        return False
-
-def accept_incoming(): 
+def accept_incoming():
     client, client_address = SERVER.accept()
-    client_sock.append(client)
-    print("%s:%s has connected." % client_address)
-    client_addresses[client] = client_address
+    # print("%s:%s has connected." % client_address)
+
+    return client, client_address
 
 def handle_client(client_sock, client_addresses):
-    signature = client_sock[0].recv(BUFFER_SIZE)
-    message = input('Input text:')
+    msg = client_sock.recv(buffer_size)
+    msg = json.loads(msg)
+    cipher = msg['cipher']
+    cipher = cipher.encode('ISO-8859-1')
+    datetime = msg['datetime']
     
-    if(verify_sha1(message, signature, pubKey)):
-        print('Verified!')
-    else:
-        print('Not match!')
+    # pencatatan(cipher, datetime)
+    msg = decrypt(cipher, privKey)
+    print(msg)
+
+def pencatatan(msg, dateSend):
+	now = str(datetime.now().timestamp())
+	f = open('rsa_csv/subscribe_RSA.csv', 'a')
+	f.write(msg + ";" + now + ";" + dateSend + "\n")
 
 pubKey, privKey = load_keys()
 
-HOST = gethostbyname(gethostname())
-PORT = 42000
-BUFFER_SIZE = 2048
-ADDRESS = (HOST, PORT)
+host = gethostbyname(gethostname())
+port = 42000
+buffer_size = 2048
+address = (host, port)
 
 SERVER = socket(AF_INET, SOCK_STREAM)
-SERVER.bind(ADDRESS)
+SERVER.bind(address)
+SERVER.settimeout(15)
+SERVER.listen(1)
 
-SERVER.listen(2)
-print('Server IP: ', HOST)
+print('Server IP: ', host)
 print("Waiting for connection...")
-accept_incoming()
 
-Thread(target = handle_client, args = (client_sock, client_addresses)).start()
-
-SERVER.close()
+stopped = False
+while not stopped:
+    try: 
+        client, client_address = accept_incoming()
+    except:
+        stopped = True
+        print('Timeout')
+    else:
+        handle_client(client, client_address)
