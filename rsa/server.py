@@ -23,25 +23,14 @@ def decrypt(ciphertext, key):
 
 def accept_incoming():
     client, client_address = SERVER.accept()
-    # print("%s:%s has connected." % client_address)
+    print("%s:%s has connected." % client_address)
 
     return client, client_address
 
 def handle_client(client_sock, client_addresses):
     msg = client_sock.recv(buffer_size)
-    msg = json.loads(msg)
-    cipher = msg['cipher']
-    cipher = cipher.encode('ISO-8859-1')
-    datetime = msg['datetime']
-    
-    # pencatatan(cipher, datetime)
-    msg = decrypt(cipher, privKey)
+    msg = decrypt(msg, privKey)
     print(msg)
-
-def pencatatan(msg, dateSend):
-	now = str(datetime.now().timestamp())
-	f = open('rsa_csv/subscribe_RSA.csv', 'a')
-	f.write(msg + ";" + now + ";" + dateSend + "\n")
 
 pubKey, privKey = load_keys()
 

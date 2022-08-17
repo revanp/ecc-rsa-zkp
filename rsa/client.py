@@ -8,10 +8,9 @@ from datetime import datetime
 import rsa 
 import random
 import time
-import json
 
 def generate_keys():
-    (pubKey, privKey) = rsa.newkeys(2048)
+    (pubKey, privKey) = rsa.newkeys(1024)
     with open('rsa_key/pubkey.pem', 'wb') as f:
         f.write(pubKey.save_pkcs1('PEM'))
 
@@ -30,18 +29,15 @@ def load_keys():
 def encrypt(msg, key):
     return rsa.encrypt(msg.encode('ascii'), key)
 
-def pencatatan(i, waktu):
-    f = open('rsa_csv/publish_RSA.csv', 'a')
-    f.write("Pesan ke-" + i + ";" + msg + ";" + waktu + "\n")
-
 pubKey, privKey = load_keys()
 
 HOST = '192.168.100.174'
+HOST = gethostbyname(gethostname())
 PORT = 42000
 ADDRESS = (HOST, PORT)
 
 message = {}
-for i in range(10): 
+for i in range(100): 
     CLIENT = socket(AF_INET, SOCK_STREAM)
     CLIENT.connect(ADDRESS)
 
@@ -49,11 +45,6 @@ for i in range(10):
     ciphertext = encrypt(msg, pubKey)
     now = str(datetime.now().timestamp())
 
-    pencatatan(str(i), now)
-    message['cipher'] = ciphertext.decode('ISO-8859-1')
-    message['datetime'] = now
+    print(msg)
 
-    jsonToString = json.dumps(message, indent=2)
-
-    print(jsonToString + "\n")
-    CLIENT.send(bytes(jsonToString, encoding = 'utf-8'))
+    CLIENT.send(bytes(ciphertext))
