@@ -1,8 +1,13 @@
 from socket import *
 from threading import Thread
+from noknow.core import ZK, ZKSignature, ZKParameters, ZKData, ZKProof
+from queue import Queue
+from datetime import datetime
 
 from ecies.utils import generate_eth_key, generate_key
 from ecies import encrypt, decrypt
+import random
+import time
 
 def generate_keys():
     key = generate_eth_key()
@@ -25,21 +30,22 @@ def load_keys():
     return pubKey, privKey
 
 def encryptText(msg, key):
-    return encrypt(key, msg)
+    return encrypt(key, msg.encode('ascii'))
 
 pubKey, privKey = load_keys()
 
-HOST = input('Enter host: ')
-PORT = int(input('Enter port: '))
-BUFFER_SIZE = 1024
-ADDRESS = (HOST, PORT)
+# host = '192.168.100.174'
+host = gethostbyname(gethostname())
+port = 42001
+address = (host, port)
 
-CLIENT = socket(AF_INET, SOCK_STREAM)
-CLIENT.connect(ADDRESS)
+for i in range(100): 
+    client = socket(AF_INET, SOCK_STREAM)
+    client.connect(address)
 
-msg = b"Brigitha"
-ciphertext = encryptText(msg, pubKey)
+    msg = str(random.randint(0, 1000))
+    ciphertext = encryptText(msg, pubKey)
 
-CLIENT.send(bytes(ciphertext))
+    print(msg)
 
-print(ciphertext)
+    client.send(bytes(ciphertext))

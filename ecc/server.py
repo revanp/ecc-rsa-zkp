@@ -15,33 +15,44 @@ def load_keys():
 
     return pubKey, privKey
 
+def decryptText(ciphertext, key):
+    try:
+        return decrypt(key, ciphertext).decode('ascii')
+    except:
+        return False
+
 def accept_incoming(): 
-    client, client_address = SERVER.accept()
-    client_sock.append(client)
+    client, client_address = server.accept()
     print("%s:%s has connected." % client_address)
-    client_addresses[client] = client_address
+
+    return client, client_address
 
 def handle_client(client_sock, client_addresses):
-    message = client_sock[0].recv(BUFFER_SIZE)
-    message = decrypt(privKey, message)
-
-    print(message)
+    msg = client_sock.recv(buffer_size)
+    msg = decryptText(msg, privKey)
+    print(msg)
 
 pubKey, privKey = load_keys()
 
-HOST = gethostbyname(gethostname())
-PORT = 42001
-BUFFER_SIZE = 2048
-ADDRESS = (HOST, PORT)
+host = gethostbyname(gethostname())
+port = 42001
+buffer_size = 2048
+address = (host, port)
 
-SERVER = socket(AF_INET, SOCK_STREAM)
-SERVER.bind(ADDRESS)
+server = socket(AF_INET, SOCK_STREAM)
+server.bind(address)
+server.settimeout(15)
+server.listen(1)
 
-SERVER.listen(2)
-print('Server IP: ', HOST)
+print('Server IP: ', host)
 print("Waiting for connection...")
-accept_incoming()
 
-Thread(target = handle_client, args = (client_sock, client_addresses)).start()
-
-SERVER.close()
+stopped = False
+while not stopped:
+    try: 
+        client, client_address = accept_incoming()
+    except:
+        stopped = True
+        print('Timeout')
+    else:
+        handle_client(client, client_address)

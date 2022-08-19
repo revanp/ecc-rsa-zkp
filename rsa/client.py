@@ -31,15 +31,14 @@ def encrypt(msg, key):
 
 pubKey, privKey = load_keys()
 
-HOST = '192.168.100.174'
-HOST = gethostbyname(gethostname())
-PORT = 42000
-ADDRESS = (HOST, PORT)
+# host = '192.168.100.174'
+host = gethostbyname(gethostname())
+port = 42000
+address = (host, port)
 
-message = {}
 for i in range(100): 
-    CLIENT = socket(AF_INET, SOCK_STREAM)
-    CLIENT.connect(ADDRESS)
+    client = socket(AF_INET, SOCK_STREAM)
+    client.connect(address)
 
     msg = str(random.randint(0, 1000))
     ciphertext = encrypt(msg, pubKey)
@@ -47,4 +46,4 @@ for i in range(100):
 
     print(msg)
 
-    CLIENT.send(bytes(ciphertext))
+    client.send(bytes(ciphertext))

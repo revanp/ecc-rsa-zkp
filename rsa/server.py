@@ -22,7 +22,7 @@ def decrypt(ciphertext, key):
         return False
 
 def accept_incoming():
-    client, client_address = SERVER.accept()
+    client, client_address = server.accept()
     print("%s:%s has connected." % client_address)
 
     return client, client_address
@@ -39,10 +39,10 @@ port = 42000
 buffer_size = 2048
 address = (host, port)
 
-SERVER = socket(AF_INET, SOCK_STREAM)
-SERVER.bind(address)
-SERVER.settimeout(15)
-SERVER.listen(1)
+server = socket(AF_INET, SOCK_STREAM)
+server.bind(address)
+server.settimeout(15)
+server.listen(1)
 
 print('Server IP: ', host)
 print("Waiting for connection...")
