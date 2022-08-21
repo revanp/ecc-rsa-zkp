@@ -36,7 +36,7 @@ pubKey, privKey = load_keys()
 
 host = gethostbyname(gethostname())
 port = 42000
-buffer_size = 2048
+buffer_size = 3072
 address = (host, port)
 
 server = socket(AF_INET, SOCK_STREAM)
