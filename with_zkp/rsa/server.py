@@ -29,11 +29,12 @@ def accept_incoming():
     return client, client_address
 
 def handle_client(client_sock, client_addresses):
+    msg = client_sock.recv(buffer_size)
+    msg = decrypt(msg, privKey)
+
     server_password = "brigithacantik"
     server_zk = ZK.new(curve_name="secp384r1", hash_alg="sha3_512")
     server_signature: ZKSignature = server_zk.create_signature(server_password)
-
-    msg = client_sock.recv(buffer_size).decode('utf-8')
 
     client_signature = ZKSignature.load(msg)
     client_zk = ZK(client_signature.params)
@@ -41,8 +42,19 @@ def handle_client(client_sock, client_addresses):
     token = server_zk.sign(server_password, client_zk.token())
     client_sock.send(bytes(token.dump(separator=":"), 'utf-8'))
 
-    # msg = decrypt(msg, privKey)
-    # print(msg)
+    proof = client_sock.recv(buffer_size).decode('utf-8')
+    proof = ZKData.load(proof)
+    token = ZKData.load(proof.data, ":")
+
+    if server_zk.verify(token, server_signature) == True:
+        if client_zk.verify(proof, client_signature, data=token) == True :        
+            response = b'Berhasil'
+        else:
+            response = b'Gagal'        
+    else:
+        response = b'Gagal'
+
+    client_sock.send(bytes(response))
 
 pubKey, privKey = load_keys()
 

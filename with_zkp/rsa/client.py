@@ -10,7 +10,7 @@ import random
 import time
 
 def generate_keys():
-    (pubKey, privKey) = rsa.newkeys(1024)
+    (pubKey, privKey) = rsa.newkeys(4096)
     with open('rsa_key/pubkey.pem', 'wb') as f:
         f.write(pubKey.save_pkcs1('PEM'))
 
@@ -38,20 +38,24 @@ buffer_size = 2048
 address = (host, port)
 
 for i in range(1): 
-    zk = ZK.new(curve_name="secp256k1", hash_alg="sha3_256")
+    zk = ZK.new(curve_name = "secp256k1", hash_alg = "sha3_256")
 
     client = socket(AF_INET, SOCK_STREAM)
     client.connect(address)
 
     # msg = str(random.randint(0, 50))
     msg = 'revan'
-    ciphertext = encrypt(msg, pubKey)
-    signature = zk.create_signature(ciphertext)
+    signature = zk.create_signature(msg)
+    ciphertext = encrypt(signature.dump(), pubKey)
     now = str(datetime.now().timestamp())
 
-    # print()
-
-    client.send(bytes(signature.dump(), 'utf-8'))
+    client.send(bytes(ciphertext))
 
     token = client.recv(buffer_size).decode('utf-8')
-    print()
+    proofInput = input('Enter again: ')
+    proof = zk.sign(proofInput, token).dump()
+
+    client.send(bytes(proof, 'utf-8'))
+
+    response = client.recv(buffer_size).decode('utf-8')
+    print(response)
