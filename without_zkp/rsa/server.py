@@ -1,27 +1,27 @@
 from socket import *
 from threading import Thread
-from ecies import encrypt, decrypt
+from datetime import datetime
 
-client_sock = []
-client_addresses = {}
-public_key = []
+import rsa
+import time
+import json
 
 def load_keys():
-    with open('ecc_key/pubkey.pem', 'r') as f:
-        pubKey = f.read()
+    with open('rsa_key/pubkey.pem', 'rb') as f:
+        pubKey = rsa.PublicKey.load_pkcs1(f.read())
 
-    with open('ecc_key/privkey.pem', 'r') as f:
-        privKey = f.read()
+    with open('rsa_key/privkey.pem', 'rb') as f:
+        privKey = rsa.PrivateKey.load_pkcs1(f.read())
 
     return pubKey, privKey
 
-def decryptText(ciphertext, key):
+def decrypt(ciphertext, key):
     try:
-        return decrypt(key, ciphertext).decode('ascii')
+        return rsa.decrypt(ciphertext, key).decode('ascii')
     except:
         return False
 
-def accept_incoming(): 
+def accept_incoming():
     client, client_address = server.accept()
     print("%s:%s has connected." % client_address)
 
@@ -29,14 +29,15 @@ def accept_incoming():
 
 def handle_client(client_sock, client_addresses):
     msg = client_sock.recv(buffer_size)
-    msg = decryptText(msg, privKey)
+    msg = decrypt(msg, privKey)
     print(msg)
 
 pubKey, privKey = load_keys()
 
-host = gethostbyname(gethostname())
-port = 42001
-buffer_size = 160
+host = 'localhost'
+# host = gethostbyname(gethostname())
+port = 42000
+buffer_size = 3072
 address = (host, port)
 
 server = socket(AF_INET, SOCK_STREAM)
