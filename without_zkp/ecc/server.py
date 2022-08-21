@@ -1,27 +1,27 @@
 from socket import *
 from threading import Thread
-from datetime import datetime
+from ecies import encrypt, decrypt
 
-import rsa
-import time
-import json
+client_sock = []
+client_addresses = {}
+public_key = []
 
 def load_keys():
-    with open('rsa_key/pubkey.pem', 'rb') as f:
-        pubKey = rsa.PublicKey.load_pkcs1(f.read())
+    with open('ecc_key/pubkey.pem', 'r') as f:
+        pubKey = f.read()
 
-    with open('rsa_key/privkey.pem', 'rb') as f:
-        privKey = rsa.PrivateKey.load_pkcs1(f.read())
+    with open('ecc_key/privkey.pem', 'r') as f:
+        privKey = f.read()
 
     return pubKey, privKey
 
-def decrypt(ciphertext, key):
+def decryptText(ciphertext, key):
     try:
-        return rsa.decrypt(ciphertext, key).decode('ascii')
+        return decrypt(key, ciphertext).decode('ascii')
     except:
         return False
 
-def accept_incoming():
+def accept_incoming(): 
     client, client_address = server.accept()
     print("%s:%s has connected." % client_address)
 
@@ -29,13 +29,13 @@ def accept_incoming():
 
 def handle_client(client_sock, client_addresses):
     msg = client_sock.recv(buffer_size)
-    msg = decrypt(msg, privKey)
+    msg = decryptText(msg, privKey)
     print(msg)
 
 pubKey, privKey = load_keys()
 
 host = gethostbyname(gethostname())
-port = 42000
+port = 42001
 buffer_size = 2048
 address = (host, port)
 
