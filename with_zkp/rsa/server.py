@@ -1,6 +1,7 @@
 from socket import *
 from threading import Thread
 from datetime import datetime
+from noknow.core import ZK, ZKSignature, ZKParameters, ZKData, ZKProof
 
 import rsa
 import time
@@ -28,9 +29,20 @@ def accept_incoming():
     return client, client_address
 
 def handle_client(client_sock, client_addresses):
-    msg = client_sock.recv(buffer_size)
-    msg = decrypt(msg, privKey)
-    print(msg)
+    server_password = "brigithacantik"
+    server_zk = ZK.new(curve_name="secp384r1", hash_alg="sha3_512")
+    server_signature: ZKSignature = server_zk.create_signature(server_password)
+
+    msg = client_sock.recv(buffer_size).decode('utf-8')
+
+    client_signature = ZKSignature.load(msg)
+    client_zk = ZK(client_signature.params)
+
+    token = server_zk.sign(server_password, client_zk.token())
+    client_sock.send(bytes(token.dump(separator=":"), 'utf-8'))
+
+    # msg = decrypt(msg, privKey)
+    # print(msg)
 
 pubKey, privKey = load_keys()
 
