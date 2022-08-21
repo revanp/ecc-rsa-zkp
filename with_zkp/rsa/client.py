@@ -43,8 +43,8 @@ for i in range(1):
     client = socket(AF_INET, SOCK_STREAM)
     client.connect(address)
 
-    # msg = str(random.randint(0, 50))
-    msg = 'revan'
+    # msg = str(random.randint(0, 10))
+    msg = input('Enter message: ')
     signature = zk.create_signature(msg)
     ciphertext = encrypt(signature.dump(), pubKey)
     now = str(datetime.now().timestamp())
@@ -53,6 +53,7 @@ for i in range(1):
 
     token = client.recv(buffer_size).decode('utf-8')
     proofInput = input('Enter again: ')
+    # proofInput = str(random.randint(0, 10))
     proof = zk.sign(proofInput, token).dump()
 
     client.send(bytes(proof, 'utf-8'))

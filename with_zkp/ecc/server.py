@@ -1,10 +1,7 @@
 from socket import *
 from threading import Thread
 from ecies import encrypt, decrypt
-
-client_sock = []
-client_addresses = {}
-public_key = []
+from noknow.core import ZK, ZKSignature, ZKParameters, ZKData, ZKProof
 
 def load_keys():
     with open('ecc_key/pubkey.pem', 'r') as f:
@@ -30,13 +27,36 @@ def accept_incoming():
 def handle_client(client_sock, client_addresses):
     msg = client_sock.recv(buffer_size)
     msg = decryptText(msg, privKey)
-    print(msg)
+
+    server_password = "brigithacantik"
+    server_zk = ZK.new(curve_name="secp384r1", hash_alg="sha3_512")
+    server_signature: ZKSignature = server_zk.create_signature(server_password)
+
+    client_signature = ZKSignature.load(msg)
+    client_zk = ZK(client_signature.params)
+
+    token = server_zk.sign(server_password, client_zk.token())
+    client_sock.send(bytes(token.dump(separator=":"), 'utf-8'))
+
+    proof = client_sock.recv(buffer_size).decode('utf-8')
+    proof = ZKData.load(proof)
+    token = ZKData.load(proof.data, ":")
+
+    if server_zk.verify(token, server_signature) == True:
+        if client_zk.verify(proof, client_signature, data=token) == True :        
+            response = b'Berhasil'
+        else:
+            response = b'Gagal'        
+    else:
+        response = b'Gagal'
+
+    client_sock.send(bytes(response))
 
 pubKey, privKey = load_keys()
 
 host = gethostbyname(gethostname())
 port = 42001
-buffer_size = 1024
+buffer_size = 2048
 address = (host, port)
 
 server = socket(AF_INET, SOCK_STREAM)

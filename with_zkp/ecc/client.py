@@ -37,15 +37,29 @@ pubKey, privKey = load_keys()
 # host = '192.168.100.174'
 host = gethostbyname(gethostname())
 port = 42001
+buffer_size = 2048
 address = (host, port)
 
-for i in range(100): 
+for i in range(1): 
+    zk = ZK.new(curve_name = "secp256k1", hash_alg = "sha3_256")
+
     client = socket(AF_INET, SOCK_STREAM)
     client.connect(address)
 
-    msg = str(random.randint(0, 1000))
-    ciphertext = encryptText(msg, pubKey)
-
-    print(msg)
+    # msg = str(random.randint(0, 10))
+    msg = input('Enter message: ')
+    signature = zk.create_signature(msg)
+    ciphertext = encryptText(signature.dump(), pubKey)
+    now = str(datetime.now().timestamp())
 
     client.send(bytes(ciphertext))
+
+    token = client.recv(buffer_size).decode('utf-8')
+    proofInput = input('Enter again: ')
+    # proofInput = str(random.randint(0, 10))
+    proof = zk.sign(proofInput, token).dump()
+
+    client.send(bytes(proof, 'utf-8'))
+
+    response = client.recv(buffer_size).decode('utf-8')
+    print(response)
