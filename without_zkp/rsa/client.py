@@ -10,7 +10,7 @@ import random
 import time
 
 def generate_keys():
-    (pubKey, privKey) = rsa.newkeys(3072)
+    (pubKey, privKey) = rsa.newkeys(2048)
     with open('rsa_key/pubkey.pem', 'wb') as f:
         f.write(pubKey.save_pkcs1('PEM'))
 

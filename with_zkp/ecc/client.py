@@ -12,8 +12,8 @@ import time
 def generate_keys():
     key = generate_eth_key()
 
-    privKey = key.to_hex()
-    pubKey = key.public_key.to_hex()
+    privKey = key.to_hex(160)
+    pubKey = key.public_key.to_hex(160)
     with open('ecc_key/pubkey.pem', 'w') as f:
         f.write(pubKey)
 

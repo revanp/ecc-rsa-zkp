@@ -36,11 +36,10 @@ pubKey, privKey = load_keys()
 
 host = gethostbyname(gethostname())
 port = 42001
-<<<<<<< HEAD:ecc/server.py
-buffer_size = 160
-=======
-buffer_size = 2048
->>>>>>> 3c9e07ed1ac5ef0e92e492178c1899c13427a9b8:without_zkp/ecc/server.py
+
+buffer_size = 4096
+
+buffer_size = 4096
 address = (host, port)
 
 server = socket(AF_INET, SOCK_STREAM)
