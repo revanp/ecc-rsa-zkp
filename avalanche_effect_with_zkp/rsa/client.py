@@ -38,6 +38,7 @@ port = 42000
 buffer_size = 2048
 address = (host, port)
 
+memory_usage = 0
 for i in range(1): 
     zk = ZK.new(curve_name = "secp256k1", hash_alg = "sha3_256")
 
@@ -49,6 +50,31 @@ for i in range(1):
     signature = zk.create_signature(msg)
     ciphertext = encrypt(signature.dump(), pubKey)
     now = str(datetime.now().timestamp())
+
+    # AVALANCHE
+    msg_bin = int.from_bytes(signature.dump().encode('ascii'), byteorder = sys.byteorder)
+    ciphertext_bin = int.from_bytes(ciphertext, byteorder = sys.byteorder)
+
+    diff = bin(msg_bin ^ ciphertext_bin)
+
+    count = 0
+    for j in diff:
+        if j == "1":
+            count += 1
+            # print ("Total difference \t:\t", count, "bits")
+
+        len_a = len(bin(msg_bin))
+        len_b = len(bin(ciphertext_bin))
+
+    if (len_a) >= (len_b):
+        AE = (count/ len_a) * 100
+    else:
+        AE = (count/ len_b) * 100
+    # END AVALANCHE
+
+    # MEMORY
+    memory_usage += sys.getsizeof(ciphertext)
+    # END MEMORY
 
     client.send(bytes(ciphertext))
 
@@ -63,3 +89,6 @@ for i in range(1):
 
     print("\n----------------------------------------------")
     print(response)
+    print("----------------------------------------------")
+    print ("Avalanche effect \t:\t", AE, "%")
+    print("Used memory : ", (memory_usage / 1000), "Kb")

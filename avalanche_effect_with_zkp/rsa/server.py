@@ -1,24 +1,28 @@
 from socket import *
 from threading import Thread
-from ecies import encrypt, decrypt
+from datetime import datetime
 from noknow.core import ZK, ZKSignature, ZKParameters, ZKData, ZKProof
 
-def load_keys():
-    with open('ecc_key/pubkey.pem', 'r') as f:
-        pubKey = f.read()
+import rsa
+import time
+import json
 
-    with open('ecc_key/privkey.pem', 'r') as f:
-        privKey = f.read()
+def load_keys():
+    with open('rsa_key/pubkey.pem', 'rb') as f:
+        pubKey = rsa.PublicKey.load_pkcs1(f.read())
+
+    with open('rsa_key/privkey.pem', 'rb') as f:
+        privKey = rsa.PrivateKey.load_pkcs1(f.read())
 
     return pubKey, privKey
 
-def decryptText(ciphertext, key):
+def decrypt(ciphertext, key):
     try:
-        return decrypt(key, ciphertext).decode('ascii')
+        return rsa.decrypt(ciphertext, key).decode('ascii')
     except:
         return False
 
-def accept_incoming(): 
+def accept_incoming():
     client, client_address = server.accept()
     print("%s:%s has connected." % client_address)
 
@@ -26,7 +30,7 @@ def accept_incoming():
 
 def handle_client(client_sock, client_addresses):
     msg = client_sock.recv(buffer_size)
-    msg = decryptText(msg, privKey)
+    msg = decrypt(msg, privKey)
 
     server_password = "brigithacantik"
     server_zk = ZK.new(curve_name="secp384r1", hash_alg="sha3_512")
@@ -56,8 +60,8 @@ pubKey, privKey = load_keys()
 
 host = 'localhost'
 # host = gethostbyname(gethostname())
-port = 42001
-buffer_size = 4096
+port = 42000
+buffer_size = 2048
 address = (host, port)
 
 server = socket(AF_INET, SOCK_STREAM)
